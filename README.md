@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# VTrack
+=======
 # VTrack - Vision Track
 
 Python-based video inference pipeline using YOLO for object detection. The system processes video frame-by-frame, generates annotated video output, and can optionally run line-crossing and region-presence analytics.
@@ -73,43 +76,45 @@ output_dir: "outputs"
 output_video: "annotated.mp4"
 
 model:
-	weights: "models/yolo11n.pt"
-	device: "cpu"
-	conf: 0.25
-	iou: 0.45
-	classes: [0]
-	tracker: "bytetrack.yaml"
+  weights: "models/yolo11n.pt"
+  device: "cpu"
+  conf: 0.25
+  iou: 0.45
+  classes: [0]
+  tracker: "bytetrack.yaml"
 
 feature:
-	- linecross
-	- regionpresence
+  - linecross
+  - regionpresence
 lines:
-	- id: 1
-		bidirectional: true
-		orientation: horizontal
-		direction: downward
-		coords:
-			- x: 0.29375
-				y: 0.441667
-			- x: 0.75
-				y: 0.454167
+  - id: 1
+    bidirectional: true
+    orientation: horizontal
+    direction: downward
+    coords:
+      - x: 0.29375
+        y: 0.441667
+      - x: 0.75
+        y: 0.454167
 
 regions:
-	- id: 1
-		name: "waiting_area"
-		coords:
-			- x: 0.12
-				y: 0.62
-			- x: 0.36
-				y: 0.62
-			- x: 0.45
-				y: 0.95
-			- x: 0.08
-				y: 0.95
+  - id: 1
+    name: "waiting_area"
+    coords:
+      - x: 0.12
+        y: 0.62
+      - x: 0.36
+        y: 0.62
+      - x: 0.45
+        y: 0.95
+      - x: 0.08
+        y: 0.95
+
 ```
 
 ## System Flowchart
 
+```mermaid
 flowchart TD
 		A[Load Config] --> B[Load YOLO Model]
 		B --> C[Open Video]
@@ -128,3 +133,4 @@ flowchart TD
 - Region presence uses bbox centers for point-in-polygon checks.
 - Supported input formats include common video types such as .mp4 and .avi.
 - The pipeline is object-oriented and keeps detection, analytics, and video processing separated for clarity.
+>>>>>>> a0a74ff (VTrack v1.0)
