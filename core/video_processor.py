@@ -8,6 +8,8 @@ import cv2
 
 from core.detector import Detection, YoloDetector
 from core.feature_base import FeatureBase
+from core.region_presence import RegionPresenceFeature
+from utils.geometry import bbox_center
 
 
 class VideoProcessor:
@@ -90,18 +92,31 @@ class VideoProcessor:
         return output_path
 
     def _draw_detections(self, frame, detections: List[Detection]) -> None:
+        region_features = [f for f in self.features if isinstance(f, RegionPresenceFeature)]
+        for feature in region_features:
+            feature._ensure_polygon(frame)
+
         for det in detections:
             x1, y1, x2, y2 = map(int, det.bbox)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            color = (0, 255, 0)
+            if region_features:
+                center = bbox_center(det.bbox)
+                inside = any(feature.is_inside(center) for feature in region_features)
+                color = (0, 0, 255) if inside else (0, 255, 0)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
             track_text = f"ID {det.track_id}" if det.track_id >= 0 else "ID ?"
             label = f"{det.label} {det.conf:.2f} {track_text}"
-            cv2.putText(frame, label, (x1, max(0, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(frame, label, (x1, max(0, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         count_text = f"Count: {len(detections)}"
         text_size, _ = cv2.getTextSize(count_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
         x = max(0, frame.shape[1] - text_size[0] - 10)
         y = max(0, frame.shape[0] - 10)
-        cv2.putText(frame, count_text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+        pad = 6
+        top_left = (x - pad, y - text_size[1] - pad)
+        bottom_right = (x + text_size[0] + pad, y + pad)
+        cv2.rectangle(frame, top_left, bottom_right, (0, 0, 0), -1)
+        cv2.putText(frame, count_text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
     def _maybe_preview(self, frame) -> None:
         if not self.preview_enabled:

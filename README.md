@@ -51,9 +51,32 @@ Optional realtime preview (press `q` to stop) can be enabled in [config.yaml](co
 
 ```
 preview:
-	enabled: true
-	scale: 0.5
+  enabled: true
+  scale: 0.5
 ```
+
+Optional draw UI (click to draw line/region on the first frame) can be enabled in [config.yaml](config.yaml):
+
+```
+draw_ui:
+  enabled: true
+  mode: both
+  scale: 0.75
+  normalized: true
+  overwrite: true
+  line_id: 1
+  region_id: 1
+  region_name: "region_1"
+  bidirectional: true
+  orientation: horizontal
+  direction: downward
+```
+
+Draw UI shortcuts:
+- L: switch to line mode (2 points)
+- P: switch to polygon mode (3+ points)
+- Z: undo last point, R: reset current mode, C: clear all
+- S: save to config and continue, Q: cancel
 
 ## Analytics Feature: Line Crossing
 
@@ -111,15 +134,15 @@ regions:
 ## System Flowchart
 ```mermaid
 flowchart TD
-		A[Load Config] --> B[Load YOLO Model]
-		B --> C[Open Video]
-		C --> D[Read Frame]
-		D --> E[YOLO Track Inference]
-		E --> F["Analytics (Line/Region)"]
-		F --> G[Draw Boxes + IDs]
-		G --> H[Write Annotated Frame]
-		H --> D
-		D -->|End| I[Write JSON/CSV Reports]
+  A[Load Config] --> B[Load YOLO Model]
+  B --> C[Open Video]
+  C --> D[Read Frame]
+  D --> E[YOLO Track Inference]
+  E --> F["Analytics (Line/Region)"]
+  F --> G[Draw Boxes + IDs]
+  G --> H[Write Annotated Frame]
+  H --> D
+  D -->|End| I[Write JSON/CSV Reports]
 ```
 
 ## Notes
@@ -128,3 +151,4 @@ flowchart TD
 - Region presence uses bbox centers for point-in-polygon checks.
 - Supported input formats include common video types such as .mp4 and .avi.
 - The pipeline is object-oriented and keeps detection, analytics, and video processing separated for clarity.
+

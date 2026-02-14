@@ -4,12 +4,14 @@ import argparse
 import os
 import sys
 
+import cv2
 import yaml
 
 from core.detector import YoloDetector
 from core.line_cross import LineCrossFeature
 from core.region_presence import RegionPresenceFeature
 from core.video_processor import VideoProcessor
+from utils.roi_editor import collect_line, collect_polygon, normalize_points
 
 
 def load_config(path: str) -> dict:
@@ -17,6 +19,82 @@ def load_config(path: str) -> dict:
         raise FileNotFoundError(f"Config not found: {path}")
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
+
+
+def get_feature_list(cfg: dict) -> list:
+    feature_list = cfg.get("feature") or []
+    if isinstance(feature_list, str):
+        feature_list = [feature_list]
+    return feature_list
+
+
+def save_config(path: str, cfg: dict) -> None:
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f, sort_keys=False, allow_unicode=False)
+
+
+def grab_first_frame(input_video: str):
+    cap = cv2.VideoCapture(input_video)
+    if not cap.isOpened():
+        raise RuntimeError(f"Failed to open video: {input_video}")
+    ret, frame = cap.read()
+    cap.release()
+    if not ret or frame is None:
+        raise RuntimeError("Failed to read first frame for ROI setup")
+    return frame
+
+
+def prepare_roi(cfg: dict, input_video: str, config_path: str) -> dict:
+    roi_cfg = cfg.get("roi", {})
+    setup_on_start = bool(roi_cfg.get("setup_on_start", False))
+
+    cfg = dict(cfg)
+    feature_list = get_feature_list(cfg)
+    need_line = "linecross" in feature_list and not cfg.get("lines")
+    need_region = "regionpresence" in feature_list and not cfg.get("regions")
+
+    if setup_on_start and (need_line or need_region):
+        frame = grab_first_frame(input_video)
+        roi_output: dict = {"lines": [], "regions": []}
+
+        if need_line:
+            points = collect_line(frame)
+            if points is None:
+                raise RuntimeError("ROI setup canceled for line")
+            norm_points = normalize_points(points, frame.shape)
+            roi_output["lines"].append(
+                {
+                    "id": 1,
+                    "bidirectional": True,
+                    "coords": [
+                        {"x": float(norm_points[0][0]), "y": float(norm_points[0][1])},
+                        {"x": float(norm_points[1][0]), "y": float(norm_points[1][1])},
+                    ],
+                }
+            )
+
+        if need_region:
+            points = collect_polygon(frame)
+            if points is None:
+                raise RuntimeError("ROI setup canceled for region")
+            norm_points = normalize_points(points, frame.shape)
+            roi_output["regions"].append(
+                {
+                    "id": 1,
+                    "name": "region_1",
+                    "coords": [{"x": float(x), "y": float(y)} for x, y in norm_points],
+                }
+            )
+
+        if roi_output.get("lines"):
+            cfg["lines"] = roi_output.get("lines")
+        if roi_output.get("regions"):
+            cfg["regions"] = roi_output.get("regions")
+
+        save_config(config_path, cfg)
+
+    return cfg
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,9 +120,7 @@ def build_detector(cfg: dict) -> YoloDetector:
 
 def build_features(cfg: dict) -> list:
     features = []
-    feature_list = cfg.get("feature") or []
-    if isinstance(feature_list, str):
-        feature_list = [feature_list]
+    feature_list = get_feature_list(cfg)
 
     if "linecross" in feature_list:
         for idx, line_cfg in enumerate(cfg.get("lines", []) or []):
@@ -106,10 +182,11 @@ def build_processor(cfg: dict, detector: YoloDetector) -> VideoProcessor:
     )
 
 
-def run_pipeline(cfg: dict) -> str:
+def run_pipeline(cfg: dict, config_path: str) -> str:
     input_video = cfg.get("input_video")
     if not input_video:
         raise ValueError("input_video is required in config.yaml")
+    cfg = prepare_roi(cfg, input_video, config_path)
     detector = build_detector(cfg)
     processor = build_processor(cfg, detector)
     print(f"Input video: {input_video}")
@@ -121,7 +198,7 @@ def run_pipeline(cfg: dict) -> str:
 def main() -> int:
     args = parse_args()
     cfg = load_config(args.config)
-    output_path = run_pipeline(cfg)
+    output_path = run_pipeline(cfg, args.config)
     print(f"Annotated video: {output_path}")
     return 0
 

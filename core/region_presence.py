@@ -26,7 +26,6 @@ class RegionPresenceFeature(FeatureBase):
         self.polygon: List[Tuple[float, float]] | None = None
         self.normalized = normalized
         self.current_count = 0
-        self.max_count = 0
 
     def process(self, frame, detections: List[Detection], frame_idx: int, fps: float) -> None:
         self._ensure_polygon(frame)
@@ -40,8 +39,6 @@ class RegionPresenceFeature(FeatureBase):
                 count += 1
 
         self.current_count = count
-        if count > self.max_count:
-            self.max_count = count
 
     def render(self, frame) -> None:
         self._ensure_polygon(frame)
@@ -51,8 +48,18 @@ class RegionPresenceFeature(FeatureBase):
         pts = np.array([(int(x), int(y)) for x, y in self.polygon], dtype=np.int32)
         cv2.polylines(frame, [pts], isClosed=True, color=(255, 0, 0), thickness=2)
 
-        text = f"Region {self.name}: {self.current_count} (max {self.max_count})"
-        cv2.putText(frame, text, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        text = f"Region {self.name}: {self.current_count}"
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.7
+        thickness = 2
+        text_size, _ = cv2.getTextSize(text, font, scale, thickness)
+        pad = 6
+        x = max(0, frame.shape[1] - text_size[0] - 10)
+        y = max(text_size[1] + pad, frame.shape[0] - 50)
+        top_left = (x - pad, y - text_size[1] - pad)
+        bottom_right = (x + text_size[0] + pad, y + pad)
+        cv2.rectangle(frame, top_left, bottom_right, (0, 0, 0), -1)
+        cv2.putText(frame, text, (x, y), font, scale, (255, 255, 255), thickness)
 
     def finalize(self, output_dir: str, fps: float) -> None:
         os.makedirs(output_dir, exist_ok=True)
@@ -65,10 +72,14 @@ class RegionPresenceFeature(FeatureBase):
                 "normalized": self.normalized,
             },
             "last_frame_count": self.current_count,
-            "max_count": self.max_count,
         }
         with open(summary_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)
+
+    def is_inside(self, point: Tuple[float, float]) -> bool:
+        if not self.polygon:
+            return False
+        return point_in_polygon(point, self.polygon)
 
     def _ensure_polygon(self, frame) -> None:
         if self.polygon is not None:
