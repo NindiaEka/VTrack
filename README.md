@@ -51,8 +51,8 @@ Optional realtime preview (press `q` to stop) can be enabled in [config.yaml](co
 
 ```
 preview:
-	enabled: true
-	scale: 0.5
+  enabled: true
+  scale: 0.5
 ```
 
 ## Analytics Feature: Line Crossing
@@ -106,21 +106,20 @@ regions:
         y: 0.95
       - x: 0.08
         y: 0.95
-
 ```
 
 ## System Flowchart
 ```mermaid
 flowchart TD
-		A[Load Config] --> B[Load YOLO Model]
-		B --> C[Open Video]
-		C --> D[Read Frame]
-		D --> E[YOLO Track Inference]
-		E --> F[Analytics (Line/Region)]
-		F --> G[Draw Boxes + IDs]
-		G --> H[Write Annotated Frame]
-		H --> D
-		D -->|End| I[Write JSON/CSV Reports]
+  A[Load Config] --> B[Load YOLO Model]
+  B --> C[Open Video]
+  C --> D[Read Frame]
+  D --> E[YOLO Track Inference]
+  E --> F["Analytics (Line/Region)"]
+  F --> G[Draw Boxes + IDs]
+  G --> H[Write Annotated Frame]
+  H --> D
+  D -->|End| I[Write JSON/CSV Reports]
 ```
 
 ## Notes
