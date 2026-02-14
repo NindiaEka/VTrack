@@ -1,4 +1,4 @@
-# VTrack - Vision AI AssistX
+# VTrack - Vision Track
 
 Python-based video inference pipeline using YOLO for object detection. The system processes video frame-by-frame, generates annotated video output, and can optionally run line-crossing and region-presence analytics.
 
@@ -73,49 +73,49 @@ output_dir: "outputs"
 output_video: "annotated.mp4"
 
 model:
-	weights: "models/yolo11n.pt"
-	device: "cpu"
-	conf: 0.25
-	iou: 0.45
-	classes: [0]
-	tracker: "bytetrack.yaml"
+  weights: "models/yolo11n.pt"
+  device: "cpu"
+  conf: 0.25
+  iou: 0.45
+  classes: [0]
+  tracker: "bytetrack.yaml"
 
 feature:
-	- linecross
-	- regionpresence
+  - linecross
+  - regionpresence
 lines:
-	- id: 1
-		bidirectional: true
-		orientation: horizontal
-		direction: downward
-		coords:
-			- x: 0.29375
-				y: 0.441667
-			- x: 0.75
-				y: 0.454167
+  - id: 1
+    bidirectional: true
+    orientation: horizontal
+    direction: downward
+    coords:
+      - x: 0.29375
+        y: 0.441667
+      - x: 0.75
+        y: 0.454167
 
 regions:
-	- id: 1
-		name: "waiting_area"
-		coords:
-			- x: 0.12
-				y: 0.62
-			- x: 0.36
-				y: 0.62
-			- x: 0.45
-				y: 0.95
-			- x: 0.08
-				y: 0.95
+  - id: 1
+    name: "waiting_area"
+    coords:
+      - x: 0.12
+        y: 0.62
+      - x: 0.36
+        y: 0.62
+      - x: 0.45
+        y: 0.95
+      - x: 0.08
+        y: 0.95
 ```
 
 ## System Flowchart
-
+```mermaid
 flowchart TD
 		A[Load Config] --> B[Load YOLO Model]
 		B --> C[Open Video]
 		C --> D[Read Frame]
 		D --> E[YOLO Track Inference]
-		E --> F[Analytics (Line/Region)]
+		E --> F["Analytics (Line/Region)"]
 		F --> G[Draw Boxes + IDs]
 		G --> H[Write Annotated Frame]
 		H --> D
