@@ -1,0 +1,17 @@
+[project]
+name = "vtrack"
+version = "1.0.0"
+description = "Video inference and analytics pipeline with YOLO"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+  "ultralytics",
+  "opencv-python",
+  "pyyaml",
+  "lap>=0.5.12",
+  "numpy",
+]
+
+[tool.uv]
+package = false

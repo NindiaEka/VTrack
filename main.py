@@ -1,0 +1,134 @@
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+
+import yaml
+
+from core.detector import YoloDetector
+from core.line_cross import LineCrossFeature
+from core.region_presence import RegionPresenceFeature
+from core.video_processor import VideoProcessor
+
+
+def load_config(path: str) -> dict:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Config not found: {path}")
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="VTrack video inference")
+    parser.add_argument("--config", default="config.yaml", help="Path to config.yaml")
+    return parser.parse_args()
+
+
+def build_detector(cfg: dict) -> YoloDetector:
+    model_cfg = cfg.get("model", {})
+    weights = model_cfg.get("weights")
+    if not weights:
+        raise ValueError("model.weights is required in config.yaml")
+    return YoloDetector(
+        weights=weights,
+        device=model_cfg.get("device"),
+        conf=float(model_cfg.get("conf", 0.25)),
+        iou=float(model_cfg.get("iou", 0.45)),
+        classes=model_cfg.get("classes"),
+        tracker=model_cfg.get("tracker", "bytetrack.yaml"),
+    )
+
+
+def build_features(cfg: dict) -> list:
+    features = []
+    feature_list = cfg.get("feature") or []
+    if isinstance(feature_list, str):
+        feature_list = [feature_list]
+
+    if "linecross" in feature_list:
+        for idx, line_cfg in enumerate(cfg.get("lines", []) or []):
+            coords = line_cfg.get("coords", [])
+            if len(coords) != 2:
+                continue
+            p1 = (float(coords[0].get("x", 0)), float(coords[0].get("y", 0)))
+            p2 = (float(coords[1].get("x", 0)), float(coords[1].get("y", 0)))
+            normalized = all(0.0 <= v <= 1.0 for v in [p1[0], p1[1], p2[0], p2[1]])
+            name = f"line_{line_cfg.get('id', idx + 1)}"
+            bidirectional = bool(line_cfg.get("bidirectional", True))
+            orientation = line_cfg.get("orientation")
+            direction = line_cfg.get("direction")
+            features.append(
+                LineCrossFeature(
+                    (p1, p2),
+                    name=name,
+                    bidirectional=bidirectional,
+                    normalized=normalized,
+                    orientation=orientation,
+                    direction=direction,
+                )
+            )
+
+    if "regionpresence" in feature_list:
+        for idx, region_cfg in enumerate(cfg.get("regions", []) or []):
+            coords = region_cfg.get("coords", [])
+            if len(coords) < 3:
+                continue
+            polygon = [(float(p.get("x", 0)), float(p.get("y", 0))) for p in coords]
+            normalized = all(0.0 <= v <= 1.0 for pt in polygon for v in pt)
+            region_id = region_cfg.get("id")
+            name = region_cfg.get("name") or f"region_{region_id or idx + 1}"
+            features.append(
+                RegionPresenceFeature(
+                    name=name,
+                    region_id=region_id,
+                    polygon=polygon,
+                    normalized=normalized,
+                )
+            )
+    return features
+
+
+def build_processor(cfg: dict, detector: YoloDetector) -> VideoProcessor:
+    output_dir = cfg.get("output_dir", "outputs")
+    output_video = cfg.get("output_video", "annotated.mp4")
+    preview_cfg = cfg.get("preview", {})
+    preview_enabled = bool(preview_cfg.get("enabled", False))
+    preview_scale = float(preview_cfg.get("scale", 1.0))
+    features = build_features(cfg)
+    return VideoProcessor(
+        detector=detector,
+        output_dir=output_dir,
+        output_video=output_video,
+        preview_enabled=preview_enabled,
+        preview_scale=preview_scale,
+        features=features,
+    )
+
+
+def run_pipeline(cfg: dict) -> str:
+    input_video = cfg.get("input_video")
+    if not input_video:
+        raise ValueError("input_video is required in config.yaml")
+    detector = build_detector(cfg)
+    processor = build_processor(cfg, detector)
+    print(f"Input video: {input_video}")
+    print(f"Output dir: {cfg.get('output_dir', 'outputs')}")
+    print(f"Weights: {cfg.get('model', {}).get('weights')}")
+    return processor.process(input_video)
+
+
+def main() -> int:
+    args = parse_args()
+    cfg = load_config(args.config)
+    output_path = run_pipeline(cfg)
+    print(f"Annotated video: {output_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1)
