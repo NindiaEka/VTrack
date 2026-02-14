@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# VTrack
-=======
 # VTrack - Vision Track
 
 Python-based video inference pipeline using YOLO for object detection. The system processes video frame-by-frame, generates annotated video output, and can optionally run line-crossing and region-presence analytics.
