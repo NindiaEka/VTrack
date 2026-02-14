@@ -110,7 +110,6 @@ regions:
 ```
 
 ## System Flowchart
-
 ```mermaid
 flowchart TD
 		A[Load Config] --> B[Load YOLO Model]
@@ -130,4 +129,4 @@ flowchart TD
 - Region presence uses bbox centers for point-in-polygon checks.
 - Supported input formats include common video types such as .mp4 and .avi.
 - The pipeline is object-oriented and keeps detection, analytics, and video processing separated for clarity.
->>>>>>> a0a74ff (VTrack v1.0)
+
