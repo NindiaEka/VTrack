@@ -122,6 +122,7 @@ regions:
 ```
 
 ## System Flowchart
+If this diagram is blank on GitHub, enable Mermaid rendering in the repository settings.
 ```mermaid
 flowchart TD
   A[Load Config] --> B[Load YOLO Model]
