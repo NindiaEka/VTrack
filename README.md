@@ -16,7 +16,8 @@ VTrack/
 │   ├── line_cross.py
 │   └── region_presence.py
 ├── utils/
-│   └── geometry.py
+│   ├── geometry.py
+│   └── roi_editor.py
 └── outputs/
 ```
 
@@ -55,28 +56,17 @@ preview:
   scale: 0.5
 ```
 
-Optional draw UI (click to draw line/region on the first frame) can be enabled in [config.yaml](config.yaml):
+Optional ROI setup (click to draw line/region on the first frame) can be enabled in [config.yaml](config.yaml):
 
 ```
-draw_ui:
-  enabled: true
-  mode: both
-  scale: 0.75
-  normalized: true
-  overwrite: true
-  line_id: 1
-  region_id: 1
-  region_name: "region_1"
-  bidirectional: true
-  orientation: horizontal
-  direction: downward
+roi:
+  setup_on_start: true
 ```
 
-Draw UI shortcuts:
-- L: switch to line mode (2 points)
-- P: switch to polygon mode (3+ points)
-- Z: undo last point, R: reset current mode, C: clear all
-- S: save to config and continue, Q: cancel
+ROI shortcuts:
+- Line: left click point A then B, Enter/Space to confirm
+- Region: left click add vertex (>=3), right click undo, Enter/Space to confirm
+- R: reset, Q/Esc: cancel
 
 ## Analytics Feature: Line Crossing
 
@@ -84,7 +74,7 @@ Enable line crossing by adding `linecross` to `feature` and providing `lines` in
 
 ## Analytics Feature: Region Presence
 
-Enable region presence by adding `regionpresence` to `feature` and providing `regions` in [config.yaml](config.yaml). Each region is a polygon (3+ points). The feature counts how many objects are inside the polygon for the current frame and keeps a max observed value.
+Enable region presence by adding `regionpresence` to `feature` and providing `regions` in [config.yaml](config.yaml). Each region is a polygon (3+ points). The feature counts how many objects are inside the polygon for the current frame.
 
 ## Configuration
 
