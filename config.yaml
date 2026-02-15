@@ -1,13 +1,7 @@
 input_video: data/input.mp4
 output_dir: outputs
 output_video: annotated.mp4
-preview:
-  enabled: true
-  scale: 0.5
-roi:
-  setup_on_start: true
-feature:
-- regionpresence
+
 model:
   weights: models/person_office_detectionv31.pt
   device: cpu
@@ -16,6 +10,17 @@ model:
   classes:
   - 0
   tracker: bytetrack.yaml
+
+preview:
+  enabled: true
+  scale: 0.5
+
+roi:
+  setup_on_start: true
+
+feature:
+- regionpresence
+
 regions:
 - id: 1
   name: region_1
