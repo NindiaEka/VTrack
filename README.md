@@ -8,6 +8,7 @@ Python-based video inference pipeline using YOLO for object detection. The syste
 VTrack/
 ├── main.py
 ├── config.yaml
+├── pyproject.toml
 ├── requirements.txt
 ├── core/
 │   ├── detector.py
@@ -18,6 +19,12 @@ VTrack/
 ├── utils/
 │   ├── geometry.py
 │   └── roi_editor.py
+├── tests/
+│   ├── conftest.py
+│   ├── test_geometry.py
+│   ├── test_line_cross.py
+│   ├── test_main_build_features.py
+│   └── test_region_presence.py
 └── outputs/
 ```
 
