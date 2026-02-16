@@ -1,6 +1,15 @@
 # VTrack - Vision Track
 
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+
 Python-based video inference pipeline using YOLO for object detection. The system processes video frame-by-frame, generates annotated video output, and can optionally run line-crossing and region-presence analytics.
+
+## What's New in v2.0.0
+
+- **Region Presence Analytics**: Count objects inside polygons.
+- **Interactive ROI Editor**: Draw lines/regions on first frame.
+- **OpenVINO Backend**: Support for `.xml/.bin` quantized models.
+- **Unit Tests**: pytest suite for core logic validation.
 
 ## Project Structure
 
