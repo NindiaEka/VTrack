@@ -150,3 +150,9 @@ flowchart TD
 - Supported input formats include common video types such as .mp4 and .avi.
 - The pipeline is object-oriented and keeps detection, analytics, and video processing separated for clarity.
 
+## Security
+
+- Treat config files, model weights, and input videos as trusted. Do not run untrusted weights.
+- Output paths come from config and are written directly to disk; avoid running with elevated permissions.
+- If you need to run untrusted assets, use a sandboxed environment or a restricted output directory.
+
