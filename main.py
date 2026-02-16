@@ -7,7 +7,7 @@ import sys
 import cv2
 import yaml
 
-from core.detector import YoloDetector
+from core.detector import OpenVinoDetector, YoloDetector
 from core.line_cross import LineCrossFeature
 from core.region_presence import RegionPresenceFeature
 from core.video_processor import VideoProcessor
@@ -108,7 +108,14 @@ def build_detector(cfg: dict) -> YoloDetector:
     weights = model_cfg.get("weights")
     if not weights:
         raise ValueError("model.weights is required in config.yaml")
-    return YoloDetector(
+    backend = str(model_cfg.get("backend", "ultralytics")).lower()
+    detector_cls = YoloDetector
+    if backend in {"openvino", "ov"}:
+        detector_cls = OpenVinoDetector
+    elif backend not in {"ultralytics", "pytorch", "pt"}:
+        raise ValueError(f"Unsupported model.backend: {backend}")
+
+    return detector_cls(
         weights=weights,
         device=model_cfg.get("device"),
         conf=float(model_cfg.get("conf", 0.25)),

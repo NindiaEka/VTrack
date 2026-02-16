@@ -94,6 +94,7 @@ output_video: "annotated.mp4"
 
 model:
   weights: "models/yolo11n.pt"
+  backend: "ultralytics"
   device: "cpu"
   conf: 0.25
   iou: 0.45
@@ -126,6 +127,21 @@ regions:
         y: 0.95
       - x: 0.08
         y: 0.95
+
+OpenVINO backend (IR model):
+
+```
+model:
+  weights: "models/best.xml"
+  backend: "openvino"
+  device: "cpu"
+```
+
+Notes:
+- OpenVINO uses the .xml file; the matching .bin must be alongside it.
+- Install runtime if needed: `pip install openvino`.
+- OpenVINO device examples: `CPU`, `GPU`, `AUTO`, `AUTO:GPU,CPU`.
+- Ultralytics device examples: `cpu`, `0`, `cuda:0`.
 ```
 
 ## System Flowchart
@@ -149,6 +165,7 @@ flowchart TD
 - Region presence uses bbox centers for point-in-polygon checks.
 - Supported input formats include common video types such as .mp4 and .avi.
 - The pipeline is object-oriented and keeps detection, analytics, and video processing separated for clarity.
+- OpenVINO models require the .xml and .bin pair; metadata files are ignored by this app.
 
 ## Security
 

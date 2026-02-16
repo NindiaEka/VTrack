@@ -72,3 +72,25 @@ class YoloDetector:
                 )
             )
         return detections
+
+
+class OpenVinoDetector(YoloDetector):
+    def __init__(
+        self,
+        weights: str,
+        device: Optional[str] = None,
+        conf: float = 0.25,
+        iou: float = 0.45,
+        classes: Optional[List[int]] = None,
+        tracker: str = "bytetrack.yaml",
+    ) -> None:
+        if not weights.lower().endswith(".xml"):
+            raise ValueError("OpenVINO backend requires .xml weights")
+        super().__init__(
+            weights=weights,
+            device=device or "cpu",
+            conf=conf,
+            iou=iou,
+            classes=classes,
+            tracker=tracker,
+        )
