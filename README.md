@@ -2,7 +2,18 @@
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 
-Python-based video inference pipeline using YOLO for object detection. The system processes video frame-by-frame, generates annotated video output, and can optionally run line-crossing and region-presence analytics.
+Python-based computer vision engine for video analysis using YOLO object detection, ByteTrack identity tracking, and configurable analytics features (line crossing, region presence). The system processes video frame-by-frame, performs inference, extracts insights, and produces structured data reports along with annotated video output.
+
+## Core Capabilities
+
+- **Frame-by-frame video processing** (.mp4, .avi, etc.)
+- **YOLO-based object detection** with Ultralytics or OpenVINO backend
+- **ByteTrack object identity tracking** to maintain object continuity across frames
+- **Line Crossing analytics** (direction-aware, bidirectional support)
+- **Region Presence analytics** (polygon-based with optional dwell-time alerting)
+- **Annotated video output** with bounding boxes, tracking IDs, and insight annotations
+- **Structured JSON & CSV reports** for event logging and analysis
+- **Unit-tested geometry and feature logic** for deterministic behavior
 
 ## What's New in v2.0.0
 
@@ -10,6 +21,18 @@ Python-based video inference pipeline using YOLO for object detection. The syste
 - **Interactive ROI Editor**: Draw lines/regions on first frame.
 - **OpenVINO Backend**: Support for `.xml/.bin` quantized models.
 - **Unit Tests**: pytest suite for core logic validation.
+
+## Design Principles
+
+**Separation of Concerns**: Detection, tracking, analytics, and geometry logic are isolated to reduce coupling and enable independent evolution.
+
+**Feature Abstraction**: All analytics features inherit from a base feature interface (`feature_base.py`). New analytics can be added without modifying the core pipeline.
+
+**Config-Driven Behavior**: Feature activation and spatial definitions (lines, regions) are fully controlled via `config.yaml`.
+
+**Testability & Determinism**: Geometry and feature logic are independently unit-tested to ensure reliable, predictable behavior.
+
+**Backend Flexibility**: Supports both Ultralytics (.pt) and OpenVINO (.xml/.bin) inference backends without hardcoding dependencies.
 
 ## Project Structure
 
@@ -113,6 +136,8 @@ Feature selection notes:
 
 Enable line crossing by adding `linecross` to `feature` and providing `lines` in [config.yaml](config.yaml). Coordinates can be normalized (0-1) or pixel-based. The feature uses tracking IDs from ByteTrack to avoid double counting.
 
+**Logic Assumption**: A crossing event is triggered when a tracked object's relative position to a defined line changes sign between consecutive frames. The object's center point is used as its spatial anchor. Each track ID is monitored persistently to prevent duplicate event counting.
+
 Notes:
 - `direction` and `orientation` are optional; if not set, they are `null` in the summary.
 - `bidirectional` defaults to `true` when omitted.
@@ -120,6 +145,8 @@ Notes:
 ## Analytics Feature: Region Presence
 
 Enable region presence by adding `regionpresence` to `feature` and providing `regions` in [config.yaml](config.yaml). Each region is a polygon (3+ points). The feature counts how many objects are inside the polygon for the current frame.
+
+**Logic Assumption**: An object is considered to be present in a region when its bounding box center lies inside the defined polygon. The point-in-polygon algorithm is used to determine inclusion. Optional dwell-time threshold alerts when a tracked object stays inside the region longer than a specified duration.
 
 Optional dwell time alert: set `dwell_threshold_sec` in a region to emit an alert when a tracked object stays inside the region longer than the threshold. Alerts are exported to `outputs/<region_name>_dwell_events.csv`.
 
@@ -207,6 +234,22 @@ flowchart TD
 - Supported input formats include common video types such as .mp4 and .avi.
 - The pipeline is object-oriented and keeps detection, analytics, and video processing separated for clarity.
 - OpenVINO models require the .xml and .bin pair; metadata files are ignored by this app.
+
+## Testing
+
+Run the unit test suite to validate geometry and feature logic:
+
+```
+pytest
+```
+
+Test coverage includes:
+- **Geometry calculations**: Line intersection, point-in-polygon, coordinate transformations
+- **Line crossing logic**: Detection of sign changes, edge cases with bidirectional mode
+- **Region inclusion logic**: Polygon boundary tests, multi-region overlap scenarios
+- **Feature builder logic**: Correct feature instantiation and isolation
+
+Unit tests ensure analytics reliability and deterministic behavior across different input scenarios.
 
 ## Security
 
