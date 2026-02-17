@@ -3,7 +3,7 @@ output_dir: outputs
 output_video: annotated.mp4
 
 model:
-  weights: models/person_office_detectionv31.pt
+  weights: models/best.pt
   device: cpu
   conf: 0.25
   iou: 0.45
@@ -19,21 +19,30 @@ roi:
   setup_on_start: true
 
 feature:
+- linecross
 - regionpresence
+
+lines:
+- id: 1
+  bidirectional: true
+  orientation: horizontal
+  direction: downward
+  coords:
+  - x: 0.25078125
+    y: 0.3902777777777778
+  - x: 0.7859375
+    y: 0.45
 
 regions:
 - id: 1
   name: region_1
+  dwell_threshold_sec: 5
   coords:
-  - x: 0.50078125
-    y: 0.004166666666666667
-  - x: 0.26953125
-    y: 0.8347222222222223
-  - x: 0.40234375
-    y: 0.9958333333333333
-  - x: 0.834375
-    y: 0.9972222222222222
-  - x: 0.8765625
-    y: 0.1638888888888889
-  - x: 0.7984375
-    y: 0.001388888888888889
+  - x: 0.1
+    y: 0.1
+  - x: 0.5
+    y: 0.1
+  - x: 0.5
+    y: 0.5
+  - x: 0.1
+    y: 0.5

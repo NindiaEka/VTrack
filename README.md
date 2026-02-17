@@ -37,6 +37,11 @@ VTrack/
 └── outputs/
 ```
 
+Folder notes:
+- data/: place input videos here (default `input_video` path).
+- models/: place model weights here (`.pt` or OpenVINO `.xml/.bin`).
+- outputs/: generated annotated videos and analytics reports.
+
 ## How To Run
 
 1. Edit [config.yaml](config.yaml) for your input video and model weights.
@@ -47,6 +52,20 @@ VTrack/
 uv venv
 uv sync
 uv run -- python main.py
+```
+
+Optional: activate the venv (if you want to run Python directly):
+
+Windows PowerShell:
+
+```
+\.venv\Scripts\Activate.ps1
+```
+
+Linux/WSL/macOS:
+
+```
+source .venv/bin/activate
 ```
 
 Alternative (pip):
@@ -84,13 +103,25 @@ ROI shortcuts:
 - Region: left click add vertex (>=3), right click undo, Enter/Space to confirm
 - R: reset, Q/Esc: cancel
 
+Feature selection notes:
+- Set `feature: []` (or omit `feature`) to disable analytics and skip ROI setup.
+- Use `feature: [linecross]` to enable line crossing and draw/provide `lines`.
+- Use `feature: [regionpresence]` to enable region presence and draw/provide `regions`.
+- Include both to run both analytics at the same time.
+
 ## Analytics Feature: Line Crossing
 
 Enable line crossing by adding `linecross` to `feature` and providing `lines` in [config.yaml](config.yaml). Coordinates can be normalized (0-1) or pixel-based. The feature uses tracking IDs from ByteTrack to avoid double counting.
 
+Notes:
+- `direction` and `orientation` are optional; if not set, they are `null` in the summary.
+- `bidirectional` defaults to `true` when omitted.
+
 ## Analytics Feature: Region Presence
 
 Enable region presence by adding `regionpresence` to `feature` and providing `regions` in [config.yaml](config.yaml). Each region is a polygon (3+ points). The feature counts how many objects are inside the polygon for the current frame.
+
+Optional dwell time alert: set `dwell_threshold_sec` in a region to emit an alert when a tracked object stays inside the region longer than the threshold. Alerts are exported to `outputs/<region_name>_dwell_events.csv`.
 
 ## Configuration
 
@@ -127,6 +158,7 @@ lines:
 regions:
   - id: 1
     name: "waiting_area"
+    dwell_threshold_sec: 5
     coords:
       - x: 0.12
         y: 0.62

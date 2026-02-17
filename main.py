@@ -161,12 +161,16 @@ def build_features(cfg: dict) -> list:
             normalized = all(0.0 <= v <= 1.0 for pt in polygon for v in pt)
             region_id = region_cfg.get("id")
             name = region_cfg.get("name") or f"region_{region_id or idx + 1}"
+            dwell_threshold_sec = region_cfg.get("dwell_threshold_sec")
+            if dwell_threshold_sec is not None:
+                dwell_threshold_sec = float(dwell_threshold_sec)
             features.append(
                 RegionPresenceFeature(
                     name=name,
                     region_id=region_id,
                     polygon=polygon,
                     normalized=normalized,
+                    dwell_threshold_sec=dwell_threshold_sec,
                 )
             )
     return features

@@ -44,3 +44,21 @@ def test_region_presence_normalized_polygon():
     assert feature.current_count == 1
     assert feature.is_inside((20.0, 20.0)) is True
     assert feature.is_inside((90.0, 90.0)) is False
+
+
+def test_region_presence_dwell_alert():
+    feature = RegionPresenceFeature(
+        name="region",
+        region_id=1,
+        polygon=[(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)],
+        normalized=False,
+        dwell_threshold_sec=1.0,
+    )
+    frame = np.zeros((100, 100, 3), dtype=np.uint8)
+    fps = 2.0
+
+    feature.process(frame, [_det(5.0, 5.0)], frame_idx=0, fps=fps)
+    assert len(feature.dwell_events) == 0
+
+    feature.process(frame, [_det(5.0, 5.0)], frame_idx=1, fps=fps)
+    assert len(feature.dwell_events) == 1
